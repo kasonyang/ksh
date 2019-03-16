@@ -1,0 +1,17 @@
+import java.text.SimpleDateFormat;
+def version = "0.0.0"
+new File(project.projectDir,"version.txt").withReader { reader ->
+    def versionExpr = reader.readLine();
+    def now = new Date();
+    if (versionExpr){
+        versionExpr = versionExpr
+                .replace("{{DATE}}",new SimpleDateFormat("yyyyMMdd").format(now))
+                .replace("{{TIME}}",new SimpleDateFormat("HHmmss").format(now))
+        ;
+    }
+    version = versionExpr;
+}
+project.version = version;
+subprojects { p->
+    p.version = version;
+}
