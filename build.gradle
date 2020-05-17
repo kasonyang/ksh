@@ -15,5 +15,6 @@ dependencies {
     compile 'com.google.code.findbugs:jsr305:3.0.1'
     compile 'org.eclipse.jgit:org.eclipse.jgit:5.2.0.201812061821-r'
     compile 'site.kason.kalang:kalang-runtime:1.5.1'
+    compile 'com.hierynomus:sshj:0.29.0'
     testCompile 'junit:junit:4.12'
 }
