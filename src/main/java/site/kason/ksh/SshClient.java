@@ -79,14 +79,11 @@ public class SshClient {
         sc.disconnect();
     }
 
-    public CommandResult execute(String command) throws ConnectionException, TransportException {
-        Session sess = sc.startSession();
-        try {
+    public CommandResult exec(String command) throws ConnectionException, TransportException {
+        try (Session sess = sc.startSession()) {
             Session.Command cmd = sess.exec(command);
             cmd.join();
             return new CommandResult(cmd);
-        } finally {
-            sess.close();
         }
     }
 
