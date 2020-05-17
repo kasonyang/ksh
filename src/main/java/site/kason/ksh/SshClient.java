@@ -40,24 +40,24 @@ public class SshClient {
         sc.addHostKeyVerifier(new PromiscuousVerifier());
     }
 
-    public void enableConsoleHostKeyVerify(File khFile) throws IOException {
+    public void enableConsoleHostKeyVerifier(File khFile) throws IOException {
         sc.addHostKeyVerifier(new ConsoleKnownHostsVerifier(khFile, System.console()));
     }
 
-    public void enableConsoleHostKeyVerify() throws IOException {
+    public void enableConsoleHostKeyVerifier() throws IOException {
         File khFile = new File(OpenSSHKnownHosts.detectSSHDir(), "known_hosts");
-        enableConsoleHostKeyVerify(khFile);
+        enableConsoleHostKeyVerifier(khFile);
     }
 
     public void authPassword(String username, String password) throws UserAuthException, TransportException {
         sc.authPassword(username, password);
     }
 
-    public void authPublickey(String username, String... locations) throws UserAuthException, TransportException {
+    public void authPublicKey(String username, String... locations) throws UserAuthException, TransportException {
         sc.authPublickey(username, locations);
     }
 
-    public void authPublickey(String username) throws UserAuthException, TransportException {
+    public void authPublicKey(String username) throws UserAuthException, TransportException {
         sc.authPublickey(username);
     }
 
