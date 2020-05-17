@@ -14,11 +14,17 @@ import net.schmizz.sshj.transport.verification.ConsoleKnownHostsVerifier;
 import net.schmizz.sshj.transport.verification.OpenSSHKnownHosts;
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 import net.schmizz.sshj.userauth.UserAuthException;
+import net.schmizz.sshj.xfer.LocalFileFilter;
+import net.schmizz.sshj.xfer.LocalSourceFile;
+import org.apache.commons.io.FilenameUtils;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.util.Collections;
 
 /**
  * @author KasonYang
@@ -112,6 +118,18 @@ public class SshClient {
         }
     }
 
+    public void uploadBytes(String destPath, byte[] content, int permissions) throws IOException {
+        String name = FilenameUtils.getName(destPath);
+        BytesLocalFile source = new BytesLocalFile(name, content, permissions);
+        try (SFTPClient sftp = sc.newSFTPClient()){
+            sftp.put(source, destPath);
+        }
+    }
+
+    public void uploadBytes(String destPath, byte[] content) throws IOException {
+        uploadBytes(destPath, content, 0644);
+    }
+
     public void downloadFile(String localPath, String... remoteFiles) throws IOException {
         try (SFTPClient sftp = sc.newSFTPClient()) {
             for (String rf : remoteFiles) {
@@ -140,5 +158,70 @@ public class SshClient {
         }
     }
 
+    private static class BytesLocalFile implements LocalSourceFile {
+
+        private String name;
+
+        private byte[] content;
+
+        private int permissions;
+
+        public BytesLocalFile(String name, byte[] content, int permissions) {
+            this.name = name;
+            this.content = content;
+            this.permissions = permissions;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public long getLength() {
+            return content.length;
+        }
+
+        @Override
+        public InputStream getInputStream() throws IOException {
+            return new ByteArrayInputStream(content);
+        }
+
+        @Override
+        public int getPermissions() throws IOException {
+            return permissions;
+        }
+
+        @Override
+        public boolean isFile() {
+            return true;
+        }
+
+        @Override
+        public boolean isDirectory() {
+            return false;
+        }
+
+        @Override
+        public Iterable<? extends LocalSourceFile> getChildren(LocalFileFilter filter) throws IOException {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public boolean providesAtimeMtime() {
+            return false;
+        }
+
+        @Override
+        public long getLastAccessTime() throws IOException {
+            return 0;
+        }
+
+        @Override
+        public long getLastModifiedTime() throws IOException {
+            return 0;
+        }
+
+    }
 
 }
