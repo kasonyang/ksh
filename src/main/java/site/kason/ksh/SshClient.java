@@ -1,5 +1,6 @@
 package site.kason.ksh;
 
+import lombok.SneakyThrows;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.common.IOUtils;
 import net.schmizz.sshj.connection.ConnectionException;
@@ -31,7 +32,7 @@ import java.util.Collections;
  */
 public class SshClient {
 
-    private final SSHClient sc = new SSHClient();
+    protected final SSHClient sc = new SSHClient();
 
 
     public void connect(String hostname, int port) throws IOException {
@@ -87,18 +88,26 @@ public class SshClient {
         }
     }
 
-    public void forwardLocalPort(String localHost, int localPort, String remoteHostName, int remotePort) throws IOException {
+    public LocalPortForwardResult forwardLocalPort(String localHost, int localPort, String remoteHostName, int remotePort) throws IOException {
         Parameters params = new Parameters(localHost, localPort, remoteHostName, remotePort);
         ServerSocket ss = new ServerSocket();
         ss.setReuseAddress(true);
         ss.bind(new InetSocketAddress(params.getLocalHost(), params.getLocalPort()));
         LocalPortForwarder forwarder = sc.newLocalPortForwarder(params, ss);
-        try {
-            forwarder.listen();
-        } finally {
-            forwarder.close();
-            ss.close();
-        }
+        Thread forwardThread = new Thread(new Runnable() {
+            @Override
+            @SneakyThrows
+            public void run() {
+                try {
+                    forwarder.listen();
+                } finally {
+                    forwarder.close();
+                    ss.close();
+                }
+            }
+        });
+        forwardThread.start();
+        return new LocalPortForwardResult(forwardThread);
     }
 
     public void forwardRemotePort(int remotePort, String host, int port) throws ConnectionException, TransportException {
@@ -153,6 +162,24 @@ public class SshClient {
         public String getError(String charset) throws IOException {
             return IOUtils.readFully(cmd.getErrorStream()).toString(charset);
         }
+    }
+
+    public static class LocalPortForwardResult {
+
+        private Thread thread;
+
+        public LocalPortForwardResult(Thread thread) {
+            this.thread = thread;
+        }
+
+        public void close() {
+            thread.interrupt();
+        }
+
+        public void join() throws InterruptedException {
+            thread.join();
+        }
+
     }
 
     private static class BytesLocalFile implements LocalSourceFile {
