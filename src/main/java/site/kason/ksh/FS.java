@@ -114,8 +114,16 @@ public final class FS {
         return FileUtils.getUserDirectoryPath();
     }
 
+    public static File getUserDirectory() {
+        return new File(getUserDirectoryPath());
+    }
+
     public static String getTempDirectoryPath() {
         return FileUtils.getTempDirectoryPath();
+    }
+
+    public static File getTempDirectory() {
+        return new File(getTempDirectoryPath());
     }
 
     public static String getSizeDesc(long size) {
