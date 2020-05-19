@@ -16,6 +16,7 @@ import net.schmizz.sshj.transport.verification.ConsoleKnownHostsVerifier;
 import net.schmizz.sshj.transport.verification.OpenSSHKnownHosts;
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 import net.schmizz.sshj.userauth.UserAuthException;
+import net.schmizz.sshj.xfer.FileSystemFile;
 import net.schmizz.sshj.xfer.LocalFileFilter;
 import net.schmizz.sshj.xfer.LocalSourceFile;
 import org.apache.commons.io.FilenameUtils;
@@ -124,10 +125,18 @@ public class SshClient {
         return new RemotePortForwardResult(forwarder, forward);
     }
 
-    public void uploadFile(String destPath, String... localPath) throws IOException {
+    public void uploadFile(String destPath, String... localFile) throws IOException {
+        File[] files = new File[localFile.length];
+        for (int i = 0; i < files.length; i++) {
+            files[i] = new File(localFile[i]);
+        }
+        uploadFile(destPath, files);
+    }
+
+    public void uploadFile(String destPath, File... localFile) throws IOException {
         try (SFTPClient sftp = sc.newSFTPClient()) {
-            for (String lp : localPath) {
-                sftp.put(lp, destPath);
+            for (File lf : localFile) {
+                sftp.put(new FileSystemFile(lf), destPath);
             }
         }
     }
@@ -144,12 +153,16 @@ public class SshClient {
         uploadBytes(destPath, content, 0644);
     }
 
-    public void downloadFile(String localPath, String... remoteFiles) throws IOException {
+    public void downloadFile(File localFile, String... remoteFiles) throws IOException {
         try (SFTPClient sftp = sc.newSFTPClient()) {
             for (String rf : remoteFiles) {
-                sftp.get(rf, localPath);
+                sftp.get(rf, new FileSystemFile(localFile));
             }
         }
+    }
+
+    public void downloadFile(String localFile, String... remoteFiles) throws IOException {
+        downloadFile(new File(localFile), remoteFiles);
     }
 
     public static class CommandResult {
