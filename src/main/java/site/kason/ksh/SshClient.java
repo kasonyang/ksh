@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.common.IOUtils;
 import net.schmizz.sshj.connection.ConnectionException;
+import net.schmizz.sshj.connection.channel.direct.DirectConnection;
 import net.schmizz.sshj.connection.channel.direct.LocalPortForwarder;
 import net.schmizz.sshj.connection.channel.direct.Parameters;
 import net.schmizz.sshj.connection.channel.direct.Session;
@@ -37,6 +38,11 @@ public class SshClient {
 
     public void connect(String hostname, int port) throws IOException {
         sc.connect(hostname, port);
+    }
+
+    public void connect(SshClient proxy, String hostname, int port) throws IOException {
+        DirectConnection dc = proxy.sc.newDirectConnection(hostname, port);
+        sc.connectVia(dc);
     }
 
     public void addHostKeyVerifier(String fingerprint) {
