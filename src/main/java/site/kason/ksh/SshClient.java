@@ -116,10 +116,12 @@ public class SshClient {
         return new LocalPortForwardResult(forwardThread);
     }
 
-    public void forwardRemotePort(int remotePort, String host, int port) throws ConnectionException, TransportException {
+    public RemotePortForwardResult forwardRemotePort(int remotePort, String host, int port) throws ConnectionException, TransportException {
         RemotePortForwarder forwarder = sc.getRemotePortForwarder();
         SocketForwardingConnectListener sfcl = new SocketForwardingConnectListener(new InetSocketAddress(host, port));
-        forwarder.bind(new RemotePortForwarder.Forward(remotePort), sfcl);
+        RemotePortForwarder.Forward forward = new RemotePortForwarder.Forward(remotePort);
+        forwarder.bind(forward, sfcl);
+        return new RemotePortForwardResult(forwarder, forward);
     }
 
     public void uploadFile(String destPath, String... localPath) throws IOException {
@@ -186,6 +188,20 @@ public class SshClient {
             thread.join();
         }
 
+    }
+
+    public static class RemotePortForwardResult {
+        private RemotePortForwarder forwarder;
+        private RemotePortForwarder.Forward forward;
+
+        public RemotePortForwardResult(RemotePortForwarder forwarder, RemotePortForwarder.Forward forward) {
+            this.forwarder = forwarder;
+            this.forward = forward;
+        }
+
+        public void close() throws ConnectionException, TransportException {
+            forwarder.cancel(forward);
+        }
     }
 
     private static class BytesLocalFile implements LocalSourceFile {
