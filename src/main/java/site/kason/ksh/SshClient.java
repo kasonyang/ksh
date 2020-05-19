@@ -53,13 +53,13 @@ public class SshClient {
         sc.addHostKeyVerifier(new PromiscuousVerifier());
     }
 
-    public void enableConsoleHostKeyVerifier(File khFile) throws IOException {
+    public void addConsoleHostKeyVerifier(File khFile) throws IOException {
         sc.addHostKeyVerifier(new ConsoleKnownHostsVerifier(khFile, System.console()));
     }
 
-    public void enableConsoleHostKeyVerifier() throws IOException {
+    public void addConsoleHostKeyVerifier() throws IOException {
         File khFile = new File(OpenSSHKnownHosts.detectSSHDir(), "known_hosts");
-        enableConsoleHostKeyVerifier(khFile);
+        addConsoleHostKeyVerifier(khFile);
     }
 
     public void authPassword(String username, String password) throws UserAuthException, TransportException {
