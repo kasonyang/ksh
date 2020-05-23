@@ -21,10 +21,7 @@ import net.schmizz.sshj.xfer.LocalFileFilter;
 import net.schmizz.sshj.xfer.LocalSourceFile;
 import org.apache.commons.io.FilenameUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Collections;
@@ -32,7 +29,7 @@ import java.util.Collections;
 /**
  * @author KasonYang
  */
-public class SshClient {
+public class SshClient implements Closeable {
 
     protected final SSHClient sc = new SSHClient();
 
@@ -85,6 +82,10 @@ public class SshClient {
 
     public void disconnect() throws IOException {
         sc.disconnect();
+    }
+
+    public void close() throws IOException {
+        disconnect();
     }
 
     public CommandResult exec(String command) throws ConnectionException, TransportException {
