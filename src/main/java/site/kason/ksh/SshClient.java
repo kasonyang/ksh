@@ -88,6 +88,10 @@ public class SshClient implements Closeable {
         disconnect();
     }
 
+    public void join() throws TransportException {
+        sc.getTransport().join();
+    }
+
     public CommandResult exec(String command) throws ConnectionException, TransportException {
         try (Session sess = sc.startSession()) {
             Session.Command cmd = sess.exec(command);
