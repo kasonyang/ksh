@@ -25,6 +25,8 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author KasonYang
@@ -32,6 +34,10 @@ import java.util.Collections;
 public class SshClient implements Closeable {
 
     protected final SSHClient sc = new SSHClient();
+
+    private final List<LocalPortForwardResult> localPfrList = new LinkedList<>();
+
+    private final List<RemotePortForwardResult> remotePfrList = new LinkedList<>();
 
 
     public void connect(String hostname, int port) throws IOException {
@@ -81,6 +87,12 @@ public class SshClient implements Closeable {
     }
 
     public void disconnect() throws IOException {
+        for (LocalPortForwardResult lpfr : localPfrList) {
+            lpfr.close();
+        }
+        for (RemotePortForwardResult rpfr : remotePfrList) {
+            rpfr.close();
+        }
         sc.disconnect();
     }
 
@@ -127,7 +139,9 @@ public class SshClient implements Closeable {
             }
         });
         forwardThread.start();
-        return new LocalPortForwardResult(forwardThread);
+        LocalPortForwardResult pfr = new LocalPortForwardResult(forwardThread);
+        localPfrList.add(pfr);
+        return pfr;
     }
 
     public RemotePortForwardResult forwardRemotePort(int remotePort, String host, int port) throws ConnectionException, TransportException {
@@ -135,7 +149,9 @@ public class SshClient implements Closeable {
         SocketForwardingConnectListener sfcl = new SocketForwardingConnectListener(new InetSocketAddress(host, port));
         RemotePortForwarder.Forward forward = new RemotePortForwarder.Forward(remotePort);
         forwarder.bind(forward, sfcl);
-        return new RemotePortForwardResult(forwarder, forward);
+        RemotePortForwardResult pfr = new RemotePortForwardResult(forwarder, forward);
+        remotePfrList.add(pfr);
+        return pfr;
     }
 
     public void uploadFile(String destPath, String... localFile) throws IOException {
