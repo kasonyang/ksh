@@ -92,6 +92,14 @@ public class SshClient implements Closeable {
         sc.getTransport().join();
     }
 
+    /**
+     * set the keep-alive interval
+     * @param interval the interval(seconds)
+     */
+    public void setKeepAliveInterval(int interval) {
+        sc.getConnection().getKeepAlive().setKeepAliveInterval(interval);
+    }
+
     public CommandResult exec(String command) throws ConnectionException, TransportException {
         try (Session sess = sc.startSession()) {
             Session.Command cmd = sess.exec(command);
