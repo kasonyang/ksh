@@ -29,9 +29,7 @@ uploadArchives {
         authentication(userName: System.getProperty('ossrhUsername'), password: System.getProperty('ossrhPassword'))
       }
 
-      snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-        authentication(userName: System.getProperty('ossrhUsername'), password: System.getProperty('ossrhPassword'))
-      }
+      snapshotRepository(url: "file:./build/maven")
 
       pom.project {
         name project.name
