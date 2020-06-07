@@ -27,6 +27,8 @@ import javax.annotation.Nullable;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -42,6 +44,9 @@ public class SshClient implements Closeable {
 
     private final List<RemotePortForwardResult> remotePfrList = new LinkedList<>();
 
+    public SshClient() {
+        sc.setRemoteCharset(StandardCharsets.UTF_8);
+    }
 
     public void connect(String hostname, int port) throws IOException {
         sc.connect(hostname, port);
@@ -85,6 +90,14 @@ public class SshClient implements Closeable {
         return sc.isConnected();
     }
 
+    public String getRemoteCharset() {
+        return sc.getRemoteCharset().name();
+    }
+
+    public void setRemoteCharset(String charset) {
+        sc.setRemoteCharset(Charset.forName(charset));
+    }
+
     public void loadKnownHosts(File location) throws IOException {
         sc.loadKnownHosts(location);
     }
@@ -119,7 +132,7 @@ public class SshClient implements Closeable {
         try (Session sess = sc.startSession()) {
             Session.Command cmd = sess.exec(command);
             cmd.join();
-            return new CommandResult(cmd);
+            return new CommandResult(cmd, getRemoteCharset());
         }
     }
 
@@ -221,13 +234,22 @@ public class SshClient implements Closeable {
 
     public static class CommandResult {
         private Session.Command cmd;
-
-        private CommandResult(Session.Command cmd) {
+        private String charset;
+        private CommandResult(Session.Command cmd, String charset) {
             this.cmd = cmd;
+            this.charset = charset;
         }
 
         public int getExitStatus() {
             return cmd.getExitStatus();
+        }
+
+        public String getOutput() throws IOException {
+            return getOutput(charset);
+        }
+
+        public String getError() throws IOException {
+            return getError(charset);
         }
 
         public String getOutput(String charset) throws IOException {
