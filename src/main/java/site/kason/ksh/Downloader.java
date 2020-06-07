@@ -1,7 +1,5 @@
 package site.kason.ksh;
 
-import kalang.type.Function1;
-
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -9,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.function.Consumer;
 
 public class Downloader {
 
@@ -32,7 +31,7 @@ public class Downloader {
         }
     }
 
-    public void download(String url, File localFile,@Nullable Function1<Void,Progress> callback) throws IOException {
+    public void download(String url, File localFile,@Nullable Consumer<Progress> callback) throws IOException {
         URL u = new URL(url);
         URLConnection conn = u.openConnection();
         long contentLen = conn.getContentLengthLong();
@@ -60,7 +59,7 @@ public class Downloader {
                         } else {
                             speed = Long.MAX_VALUE;
                         }
-                        callback.call(new Progress(contentLen,downloadedSize,speed));
+                        callback.accept(new Progress(contentLen,downloadedSize,speed));
                     }
                 }
             }
