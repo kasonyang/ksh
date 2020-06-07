@@ -3,6 +3,7 @@ package site.kason.ksh;
 import lombok.SneakyThrows;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.common.IOUtils;
+import net.schmizz.sshj.common.StreamCopier;
 import net.schmizz.sshj.connection.ConnectionException;
 import net.schmizz.sshj.connection.channel.direct.DirectConnection;
 import net.schmizz.sshj.connection.channel.direct.LocalPortForwarder;
@@ -19,8 +20,10 @@ import net.schmizz.sshj.userauth.UserAuthException;
 import net.schmizz.sshj.xfer.FileSystemFile;
 import net.schmizz.sshj.xfer.LocalFileFilter;
 import net.schmizz.sshj.xfer.LocalSourceFile;
+import net.schmizz.sshj.xfer.TransferListener;
 import org.apache.commons.io.FilenameUtils;
 
+import javax.annotation.Nullable;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -154,20 +157,31 @@ public class SshClient implements Closeable {
         return pfr;
     }
 
-    public void uploadFile(String destPath, String... localFile) throws IOException {
+    public void uploadFile(String destPath, String[] localFile,@Nullable FileTransferListener listener) throws IOException {
         File[] files = new File[localFile.length];
         for (int i = 0; i < files.length; i++) {
             files[i] = new File(localFile[i]);
         }
-        uploadFile(destPath, files);
+        uploadFile(destPath, files, listener);
     }
 
-    public void uploadFile(String destPath, File... localFile) throws IOException {
+    public void uploadFile(String destPath, String... localFile) throws IOException {
+        uploadFile(destPath, localFile, null);
+    }
+
+    public void uploadFile(String destPath, File[] localFile,@Nullable FileTransferListener listener) throws IOException {
         try (SFTPClient sftp = sc.newSFTPClient()) {
+            if (listener != null) {
+                sftp.getFileTransfer().setTransferListener(new DefaultTransferListener("", listener));
+            }
             for (File lf : localFile) {
                 sftp.put(new FileSystemFile(lf), destPath);
             }
         }
+    }
+
+    public void uploadFile(String destPath, File... localFile) throws IOException {
+        uploadFile(destPath, localFile, null);
     }
 
     public void uploadBytes(String destPath, byte[] content, int permissions) throws IOException {
@@ -182,16 +196,27 @@ public class SshClient implements Closeable {
         uploadBytes(destPath, content, 0644);
     }
 
-    public void downloadFile(File localFile, String... remoteFiles) throws IOException {
+    public void downloadFile(File localFile, String[] remoteFiles, @Nullable FileTransferListener listener) throws IOException {
         try (SFTPClient sftp = sc.newSFTPClient()) {
+            if (listener != null) {
+                sftp.getFileTransfer().setTransferListener(new DefaultTransferListener("", listener));
+            }
             for (String rf : remoteFiles) {
                 sftp.get(rf, new FileSystemFile(localFile));
             }
         }
     }
 
+    public void downloadFile(File localFile, String... remoteFiles) throws IOException {
+        downloadFile(localFile, remoteFiles, null);
+    }
+
+    public void downloadFile(String localFile, String[] remoteFiles, @Nullable FileTransferListener listener) throws IOException {
+        downloadFile(new File(localFile), remoteFiles, listener);
+    }
+
     public void downloadFile(String localFile, String... remoteFiles) throws IOException {
-        downloadFile(new File(localFile), remoteFiles);
+        downloadFile(localFile, remoteFiles, null);
     }
 
     public static class CommandResult {
@@ -310,6 +335,35 @@ public class SshClient implements Closeable {
             return 0;
         }
 
+    }
+
+    public interface FileTransferListener {
+
+        void transferredSizeChange(String file, long size);
+
+    }
+
+    private static class DefaultTransferListener implements TransferListener {
+
+        private String relativePath;
+
+        private FileTransferListener fileTransferListener;
+
+        private DefaultTransferListener(String relativePath, FileTransferListener fileTransferListener) {
+            this.relativePath = relativePath;
+            this.fileTransferListener = fileTransferListener;
+        }
+
+        @Override
+        public TransferListener directory(String name) {
+            return new DefaultTransferListener(relativePath + name + "/", fileTransferListener);
+        }
+
+        @Override
+        public StreamCopier.Listener file(String name, long size) {
+            final String path = relativePath + name;
+            return transferred -> fileTransferListener.transferredSizeChange(path, size);
+        }
     }
 
 }
