@@ -2,12 +2,14 @@ package site.kason.ksh;
 
 
 import org.apache.commons.exec.CommandLine;
+import site.kason.ksh.util.StreamUtil;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 
 public class Shell {
 
@@ -30,26 +32,34 @@ public class Shell {
         return exec(arguments, "", "", "");
     }
 
+    public int exec(String command) throws IOException, InterruptedException {
+        return exec(parseCommandLine(command));
+    }
+
     public int exec(
-            String[] arguments
-            , @Nullable String input
-            , @Nullable String output
-            , @Nullable String errOutput
+            String[] arguments, @Nullable String input, @Nullable String output, @Nullable String errOutput
     ) throws IOException, InterruptedException {
         Proc p = start(arguments, input, output, errOutput);
         p.waitFor();
         return p.exitValue();
     }
 
+    public int exec(
+            String command, @Nullable String input, @Nullable String output, @Nullable String errOutput
+    ) throws IOException, InterruptedException {
+        return exec(parseCommandLine(command), input, output, errOutput);
+    }
+
     public Proc start(String[] command) throws IOException {
         return start(command, null, null, null);
     }
 
+    public Proc start(String command) throws IOException {
+        return start(parseCommandLine(command));
+    }
+
     public Proc start(
-            String[] arguments
-            , @Nullable String input
-            , @Nullable String output
-            , @Nullable String errOutput
+            String[] arguments, @Nullable String input, @Nullable String output, @Nullable String errOutput
     ) throws IOException {
         ProcessBuilder pb = new ProcessBuilder(arguments);
         if (input != null) {
@@ -75,6 +85,37 @@ public class Shell {
         }
         pb.directory(workingDirectory);
         return new Proc(pb.start());
+    }
+
+    public Proc start(
+            String command, @Nullable String input, @Nullable String output, @Nullable String errOutput
+    ) throws IOException {
+        return start(parseCommandLine(command), input, output, errOutput);
+    }
+
+    public CaptureResult capture(String[] arguments, String charset) throws IOException, InterruptedException {
+        if (arguments == null || arguments.length == 0) {
+            throw new IllegalArgumentException("empty array");
+        }
+        Process p = Runtime.getRuntime().exec(arguments, null, workingDirectory);
+        p.waitFor();
+        try (InputStream is = p.getInputStream(); InputStream es = p.getErrorStream()) {
+            String output = StreamUtil.readToString(is, charset);
+            String error = StreamUtil.readToString(es, charset);
+            return new CaptureResult(p.exitValue(), output, error);
+        }
+    }
+
+    public CaptureResult capture(String command, String charset) throws IOException, InterruptedException {
+        return capture(parseCommandLine(command), charset);
+    }
+
+    public CaptureResult capture(String[] arguments) throws IOException, InterruptedException {
+        return capture(arguments, Charset.defaultCharset().name());
+    }
+
+    public CaptureResult capture(String command) throws IOException, InterruptedException {
+        return capture(parseCommandLine(command));
     }
 
     public String captureExec(String[] arguments) throws InterruptedException, IOException {
@@ -108,7 +149,7 @@ public class Shell {
         return bos.toString();//TODO using default encoding?
     }
 
-    public String[] parseCommandLine(String commandLine) {
+    private String[] parseCommandLine(String commandLine) {
         CommandLine cl = CommandLine.parse(commandLine);
         String[] args = cl.getArguments();
         String[] result = new String[args.length+1];
@@ -121,11 +162,35 @@ public class Shell {
 
     private ProcessBuilder.Redirect getFileRedirectForOutput(String redirectFile) {
         if (redirectFile.startsWith(">>")) {
-            return ProcessBuilder.Redirect.appendTo(new File(redirectFile.substring(2, redirectFile.length())));
+            return ProcessBuilder.Redirect.appendTo(new File(redirectFile.substring(2)));
         } else if (redirectFile.startsWith(">")) {
-            return ProcessBuilder.Redirect.to(new File(redirectFile.substring(1, redirectFile.length())));
+            return ProcessBuilder.Redirect.to(new File(redirectFile.substring(1)));
         } else {
             return ProcessBuilder.Redirect.appendTo(new File(redirectFile));
+        }
+    }
+
+    public static class CaptureResult {
+        private int exitValue;
+        private String output;
+        private String error;
+
+        public CaptureResult(int exitValue, String output, String error) {
+            this.exitValue = exitValue;
+            this.output = output;
+            this.error = error;
+        }
+
+        public int getExitValue() {
+            return exitValue;
+        }
+
+        public String getOutput() {
+            return output;
+        }
+
+        public String getError() {
+            return error;
         }
     }
 
