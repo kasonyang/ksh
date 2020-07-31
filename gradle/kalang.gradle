@@ -1,0 +1,69 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "site.kason.kalang:kalang-compiler:1.9.1"
+    }
+}
+
+dependencies {
+    compile "site.kason.kalang:kalang-runtime:1.9.1"
+}
+
+sourceSets.main.allJava.srcDir("src/main/kalang");
+sourceSets.test.allJava.srcDir("src/test/kalang")
+
+import kalang.compiler.shell.Kalangc;
+class kalang implements Plugin<Project> {
+    void cpKalang(project){
+        List<String> cps = new LinkedList()
+        for(f in project.configurations.compile.files){
+            cps.add(f.getAbsolutePath())
+        }
+        doCompile(project, "src/main/kalang", "build/classes/java/main", cps)
+    }
+    void cpTestKalang(project){
+        List<String> cps = new LinkedList()
+        for(f in project.configurations.testCompile.files){
+            cps.add(f.getAbsolutePath())
+        }
+        def mainOutDir = new File(project.projectDir,"build/classes/java/main")
+        cps.add(mainOutDir.getAbsolutePath())
+        doCompile(project, "src/test/kalang", "build/classes/java/test", cps)
+    }
+    
+    private static void doCompile(project, String srcDir, String outPath, Collection<String> classPaths = []) {
+        def klSrc = new File(project.projectDir,srcDir)
+        def outDir = new File(project.projectDir,outPath)
+        if(klSrc.exists()){
+            String cp = String.join(File.pathSeparator, classPaths)
+            def args = ["--output-dir",outDir.getAbsolutePath(),"--classpath", cp, klSrc.getAbsolutePath()];
+            int result = new Kalangc().run(args as String[])
+            if (result!=0){
+                throw new Exception("compile failed with exit code:${result}");
+            }
+        }
+    }
+    
+    void apply(Project project) {
+        project.task('compileKalang').doLast{
+            cpKalang(project);
+        }
+        project.task('compileTestKalang').doLast {
+            cpTestKalang(project)
+        }
+    }
+}
+apply plugin:kalang
+compileKalang.dependsOn compileJava
+compileTestKalang.dependsOn compileTestJava
+classes.dependsOn compileKalang
+compileTestKalang.dependsOn compileKalang
+test.dependsOn compileTestKalang
+
+test.outputs.upToDateWhen {false}
+
+jar {
+    from "$buildDir/classes/kalang/main"
+}
