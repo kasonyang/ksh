@@ -1,4 +1,4 @@
-package site.kason.ksh;
+
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -8,13 +8,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-public final class FS {
+final class {
 
-    public static void mkdir(File directory) throws IOException {
+    static void mkdir(File directory){
         FileUtils.forceMkdir(directory);
     }
 
-    public static void copyTo(File src, File destDir) throws IOException {
+    static void copyTo(File src, File destDir){
         if (!src.exists()) {
             throw new FileNotFoundException("file not found:" + src);
         }
@@ -27,7 +27,7 @@ public final class FS {
         }
     }
 
-    public static void copy(File src, File dest) throws IOException {
+    static void copy(File src, File dest){
         if (!src.exists()) {
             throw new FileNotFoundException("file not found:" + src);
         }
@@ -48,7 +48,7 @@ public final class FS {
      * @param createDestDir  whether creating the destination or not
      * @throws IOException
      */
-    public static void moveTo(File src, File destinationDir, boolean createDestDir) throws IOException {
+    static void moveTo(File src, File destinationDir, boolean createDestDir){
         FileUtils.moveToDirectory(src, destinationDir, createDestDir);
     }
 
@@ -59,11 +59,11 @@ public final class FS {
      * @param destinationDir the destination directory which should not exists.
      * @throws IOException
      */
-    public static void moveTo(File src, File destinationDir) throws IOException {
+    static void moveTo(File src, File destinationDir){
         moveTo(src, destinationDir, false);
     }
 
-    public static void move(File src, File destination) throws IOException {
+    static void move(File src, File destination){
         if (!src.exists()) {
             throw new FileNotFoundException("source file not found:" + src);
         }
@@ -76,7 +76,7 @@ public final class FS {
         }
     }
 
-    public static void delete(File file) throws IOException {
+    static void delete(File file){
         if (!file.exists()) {
             throw new FileNotFoundException("file not found:" + file);
         }
@@ -84,22 +84,22 @@ public final class FS {
             FileUtils.forceDelete(file);
         } else if (file.isDirectory()) {
             File[] children = file.listFiles();
-            for (File c : children) {
+            for (c in children) {
                 delete(c);
             }
             FileUtils.deleteDirectory(file);
         }
     }
 
-    public static String baseName(String filename) {
+    static String baseName(String filename) {
         return FilenameUtils.getBaseName(filename);
     }
 
-    public static String extensionName(String filename) {
+    static String extensionName(String filename) {
         return FilenameUtils.getExtension(filename);
     }
 
-    public static String path(String[] parts) {
+    static String path(String[] parts) {
         if (parts.length == 0) {
             throw new IllegalArgumentException("empty array");
         }
@@ -110,23 +110,23 @@ public final class FS {
         return file.getPath();
     }
 
-    public static String getUserDirectoryPath() {
+    static String getUserDirectoryPath() {
         return FileUtils.getUserDirectoryPath();
     }
 
-    public static File getUserDirectory() {
+    static File getUserDirectory() {
         return new File(getUserDirectoryPath());
     }
 
-    public static String getTempDirectoryPath() {
+    static String getTempDirectoryPath() {
         return FileUtils.getTempDirectoryPath();
     }
 
-    public static File getTempDirectory() {
+    static File getTempDirectory() {
         return new File(getTempDirectoryPath());
     }
 
-    public static String getSizeDesc(long size) {
+    static String getSizeDesc(long size) {
         if (size<1024) {
             return size + "B";
         } else if (size < 1024*1024) {
@@ -138,11 +138,11 @@ public final class FS {
         }
     }
 
-    public static boolean wildcardMatch(String fileName,String wildcardMatcher) {
+    static boolean wildcardMatch(String fileName,String wildcardMatcher) {
         return FilenameUtils.wildcardMatch(fileName,wildcardMatcher, IOCase.SYSTEM);
     }
 
-    public static boolean wildcardMatch(String fileName,String wildcardMatcher,boolean caseSensitive) {
+    static boolean wildcardMatch(String fileName,String wildcardMatcher,boolean caseSensitive) {
         return FilenameUtils.wildcardMatch(fileName,wildcardMatcher,caseSensitive ? IOCase.SENSITIVE:IOCase.INSENSITIVE);
     }
 

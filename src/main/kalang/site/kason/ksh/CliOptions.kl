@@ -1,50 +1,47 @@
-package site.kason.ksh;
-
 import org.apache.commons.cli.*;
 
 import javax.annotation.Nullable;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-public class CliOptions {
+class {
 
-    public static class ParseResult {
+    static class ParseResult {
 
         private CommandLine commandLine;
 
         private String[] args;
 
-        public ParseResult(CommandLine commandLine) {
+        constructor(CommandLine commandLine) {
             this.commandLine = commandLine;
             this.args = commandLine.getArgs();
         }
 
-        public String getOptionValue(String opt,String defaultValue) {
+        String getOptionValue(String opt,String defaultValue) {
             return commandLine.getOptionValue(opt, defaultValue);
         }
 
-        @Nullable
-        public String getOptionValue(String opt) {
+        String? getOptionValue(String opt) {
             return commandLine.getOptionValue(opt);
         }
 
-        public boolean hasOption(String opt) {
+        boolean hasOption(String opt) {
             return commandLine.hasOption(opt);
         }
 
-        public String getArgument(int index,String defaultValue) {
+        String getArgument(int index,String defaultValue) {
             return index < args.length ? args[index] : defaultValue;
         }
 
-        public String getArgument(int index) {
+        String getArgument(int index) {
             return args[index];
         }
 
-        public boolean hasArgument(int index) {
+        boolean hasArgument(int index) {
             return index < args.length;
         }
 
-        public String[] getArguments() {
+        String[] getArguments() {
             return commandLine.getArgs();
         }
 
@@ -54,27 +51,27 @@ public class CliOptions {
 
     private int width = 74;
 
-    public CliOptions add(String opt, String description) {
+    CliOptions add(String opt, String description) {
         options.addOption(opt, description);
         return this;
     }
 
-    public CliOptions add(String opt, boolean hasArg, String description) {
+    CliOptions add(String opt, boolean hasArg, String description) {
         options.addOption(opt, hasArg, description);
         return this;
     }
 
-    public CliOptions add(String opt, String longOpt, boolean hasArg, String description) {
+    CliOptions add(String opt, String longOpt, boolean hasArg, String description) {
         options.addOption(opt, longOpt, hasArg, description);
         return this;
     }
 
-    public ParseResult parse(String[] args) throws ParseException {
+    ParseResult parse(String[] args){
         DefaultParser parser = new DefaultParser();
         return new ParseResult(parser.parse(options, args, true));
     }
 
-    public String format(String usageSyntax,@Nullable String header,@Nullable String footer) {
+    String format(String usageSyntax,String? header,String? footer) {
         StringWriter stringWriter = new StringWriter();
         PrintWriter pw = new PrintWriter(stringWriter);
         HelpFormatter formatter = new HelpFormatter();
@@ -82,7 +79,7 @@ public class CliOptions {
         return stringWriter.toString();
     }
 
-    public String format(String syntax) {
+    String format(String syntax) {
         return format(syntax,null,null);
     }
 

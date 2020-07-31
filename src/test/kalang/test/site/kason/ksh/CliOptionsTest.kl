@@ -1,11 +1,9 @@
-package test.site.kason.ksh;
-
 import org.apache.commons.cli.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
 import site.kason.ksh.CliOptions;
 
-public class CliOptionsTest {
+class {
 
     @Test
     public void test() throws ParseException {
@@ -19,7 +17,7 @@ public class CliOptionsTest {
                 " -h,--help         print help message\n" +
                 " -p,--path <arg>   specify path\n" +
                 "Good luck!\n",help.replace("\r\n","\n"));
-        CliOptions.ParseResult result = options.parse(new String[]{"--help", "-p", "test","hello"});
+        val result = options.parse(["--help", "-p", "test","hello"]);
         Assert.assertTrue(result.hasOption("h"));
         Assert.assertTrue(result.hasOption("help"));
         Assert.assertTrue(result.hasOption("p"));

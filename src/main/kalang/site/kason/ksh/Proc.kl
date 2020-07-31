@@ -1,4 +1,4 @@
-package site.kason.ksh;
+
 
 import org.apache.commons.io.IOUtils;
 
@@ -10,71 +10,71 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Kason Yang
  */
-public class Proc {
+class {
 
     private final Process process;
 
-    Proc(Process process) throws IOException {
+    constructor(Process process){
         this.process = process;
     }
 
-    public OutputStream getOutputStream() {
+    OutputStream getOutputStream() {
         return process.getOutputStream();
     }
 
-    public InputStream getInputStream() {
+    InputStream getInputStream() {
         return process.getInputStream();
     }
 
-    public InputStream getErrorStream() {
+    InputStream getErrorStream() {
         return process.getErrorStream();
     }
 
-    public int waitFor() throws InterruptedException {
+    int waitFor(){
         return process.waitFor();
     }
 
-    public boolean waitFor(long timeout, TimeUnit unit) throws InterruptedException {
+    boolean waitFor(long timeout, TimeUnit unit){
         return process.waitFor(timeout, unit);
     }
 
-    public boolean waitFor(long timeout) throws InterruptedException {
+    boolean waitFor(long timeout){
         return waitFor(timeout, TimeUnit.MILLISECONDS);
     }
 
-    public int exitValue() {
+    int exitValue() {
         return process.exitValue();
     }
 
-    public boolean exitsWith(int exitValue) {
+    boolean exitsWith(int exitValue) {
         return process.exitValue() == exitValue;
     }
 
-    public void destroy() {
+    void destroy() {
         process.destroy();
     }
 
-    public Process destroyForcibly() {
+    Process destroyForcibly() {
         return process.destroyForcibly();
     }
 
-    public boolean isAlive() {
+    boolean isAlive() {
         return process.isAlive();
     }
 
-    public Input input(){
+    Input input(){
         return new Input(process.getOutputStream());
     }
 
-    public Output output(){
+    Output output(){
         return new Output(process.getInputStream());
     }
 
-    public Output error(){
+    Output error(){
         return new Output(process.getErrorStream());
     }
 
-    private String inputStreamToString(InputStream is, String charset) throws IOException {
+    private String inputStreamToString(InputStream is, String charset){
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         byte[] buffer = new byte[4096];
         int rlen;
@@ -84,51 +84,51 @@ public class Proc {
         return bos.toString(charset);
     }
 
-    public static class Input {
+    static class Input {
 
         private final OutputStream outputStream;
 
         private final Charset DEFAULT_CHARSET = Charset.defaultCharset();
 
-        public Input(OutputStream os) {
+        constructor(OutputStream os) {
             this.outputStream = os;
         }
 
-        public Input put(String data) throws IOException {
+        Input put(String data){
             return put(data, DEFAULT_CHARSET.name());
         }
 
-        public Input put(String data, String charset) throws IOException {
+        Input put(String data, String charset){
             outputStream.write(data.getBytes(charset));
             return this;
         }
 
-        public Input put(File file) throws IOException {
+        Input put(File file){
             IOUtils.copy(new FileInputStream(file), outputStream);
             return this;
         }
 
-        public void close() throws IOException {
+        void close(){
             this.outputStream.close();
         }
 
     }
 
-    public static class Output {
+    static class Output {
 
         private final InputStream inputStream;
 
         private final Charset DEFAULT_CHARSET = Charset.defaultCharset();
 
-        public Output(InputStream inputStream) {
+        constructor(InputStream inputStream) {
             this.inputStream = inputStream;
         }
 
-        public String string(String charset) throws IOException {
+        String string(String charset){
             return IOUtils.toString(inputStream, charset);
         }
 
-        public String string() throws IOException {
+        String string(){
             return IOUtils.toString(inputStream, DEFAULT_CHARSET);
         }
 

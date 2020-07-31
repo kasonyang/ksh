@@ -1,4 +1,4 @@
-package site.kason.ksh;
+
 
 
 import org.apache.commons.exec.CommandLine;
@@ -11,74 +11,74 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
-public class Shell {
+class {
 
     private File workingDirectory = new File(".");
 
-    public Shell cd(File workingDirectory) {
+    Shell cd(File workingDirectory) {
         this.workingDirectory = workingDirectory;
         return this;
     }
 
-    public File cd() {
+    File cd() {
         return workingDirectory;
     }
 
-    public Shell cd(String workingDirectory) {
+    Shell cd(String workingDirectory) {
         return cd(new File(workingDirectory));
     }
 
-    public int exec(String[] arguments) throws IOException, InterruptedException {
+    int exec(String[] arguments){
         return exec(arguments, "", "", "");
     }
 
-    public int exec(String command) throws IOException, InterruptedException {
+    int exec(String command){
         return exec(parseCommandLine(command));
     }
 
-    public int exec(
-            String[] arguments, @Nullable String input, @Nullable String output, @Nullable String errOutput
-    ) throws IOException, InterruptedException {
+    int exec(
+            String[] arguments, String? input, String? output, String? errOutput
+    ){
         Proc p = start(arguments, input, output, errOutput);
         p.waitFor();
         return p.exitValue();
     }
 
-    public int exec(
-            String command, @Nullable String input, @Nullable String output, @Nullable String errOutput
-    ) throws IOException, InterruptedException {
+    int exec(
+            String command, String? input, String? output, String? errOutput
+    ){
         return exec(parseCommandLine(command), input, output, errOutput);
     }
 
-    public Proc start(String[] command) throws IOException {
+    Proc start(String[] command){
         return start(command, null, null, null);
     }
 
-    public Proc start(String command) throws IOException {
+    Proc start(String command){
         return start(parseCommandLine(command));
     }
 
-    public Proc start(
-            String[] arguments, @Nullable String input, @Nullable String output, @Nullable String errOutput
-    ) throws IOException {
+    Proc start(
+            String[] arguments, String? input, String? output, String? errOutput
+    ){
         ProcessBuilder pb = new ProcessBuilder(arguments);
         if (input != null) {
             if (input.isEmpty()) {
-                pb.redirectInput(ProcessBuilder.Redirect.INHERIT);
+                pb.redirectInput(ProcessBuilder$Redirect.INHERIT);
             } else {
                 pb.redirectInput(new File(input));
             }
         }
         if (output != null) {
             if (output.isEmpty()) {
-                pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+                pb.redirectOutput(ProcessBuilder$Redirect.INHERIT);
             } else {
                 pb.redirectOutput(this.getFileRedirectForOutput(output));
             }
         }
         if (errOutput != null) {
             if (errOutput.isEmpty()) {
-                pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+                pb.redirectError(ProcessBuilder$Redirect.INHERIT);
             } else {
                 pb.redirectError(this.getFileRedirectForOutput(errOutput));
             }
@@ -87,13 +87,13 @@ public class Shell {
         return new Proc(pb.start());
     }
 
-    public Proc start(
-            String command, @Nullable String input, @Nullable String output, @Nullable String errOutput
-    ) throws IOException {
+    Proc start(
+            String command, String? input, String? output, String? errOutput
+    ){
         return start(parseCommandLine(command), input, output, errOutput);
     }
 
-    public CaptureResult capture(String[] arguments, String charset) throws IOException, InterruptedException {
+    CaptureResult capture(String[] arguments, String charset){
         if (arguments == null || arguments.length == 0) {
             throw new IllegalArgumentException("empty array");
         }
@@ -106,23 +106,23 @@ public class Shell {
         }
     }
 
-    public CaptureResult capture(String command, String charset) throws IOException, InterruptedException {
+    CaptureResult capture(String command, String charset){
         return capture(parseCommandLine(command), charset);
     }
 
-    public CaptureResult capture(String[] arguments) throws IOException, InterruptedException {
+    CaptureResult capture(String[] arguments){
         return capture(arguments, Charset.defaultCharset().name());
     }
 
-    public CaptureResult capture(String command) throws IOException, InterruptedException {
+    CaptureResult capture(String command){
         return capture(parseCommandLine(command));
     }
 
-    public String captureExec(String[] arguments) throws InterruptedException, IOException {
+    String captureExec(String[] arguments){
         return captureExec(arguments, 0);
     }
 
-    public String captureExec(String[] arguments, int expectingExitValue) throws InterruptedException, IOException {
+    String captureExec(String[] arguments, int expectingExitValue){
         if (arguments == null || arguments.length == 0) {
             throw new IllegalArgumentException("empty array");
         }
@@ -160,38 +160,27 @@ public class Shell {
         return result;
     }
 
-    private ProcessBuilder.Redirect getFileRedirectForOutput(String redirectFile) {
+    private ProcessBuilder$Redirect getFileRedirectForOutput(String redirectFile) {
         if (redirectFile.startsWith(">>")) {
-            return ProcessBuilder.Redirect.appendTo(new File(redirectFile.substring(2)));
+            return ProcessBuilder$Redirect.appendTo(new File(redirectFile.substring(2)));
         } else if (redirectFile.startsWith(">")) {
-            return ProcessBuilder.Redirect.to(new File(redirectFile.substring(1)));
+            return ProcessBuilder$Redirect.to(new File(redirectFile.substring(1)));
         } else {
-            return ProcessBuilder.Redirect.appendTo(new File(redirectFile));
+            return ProcessBuilder$Redirect.appendTo(new File(redirectFile));
         }
     }
 
-    public static class CaptureResult {
-        private int exitValue;
-        private String output;
-        private String error;
+    static class CaptureResult {
+        private final int exitValue;
+        private final String output;
+        private final String error;
 
-        public CaptureResult(int exitValue, String output, String error) {
+        constructor(int exitValue, String output, String error) {
             this.exitValue = exitValue;
             this.output = output;
             this.error = error;
         }
 
-        public int getExitValue() {
-            return exitValue;
-        }
-
-        public String getOutput() {
-            return output;
-        }
-
-        public String getError() {
-            return error;
-        }
     }
 
 }

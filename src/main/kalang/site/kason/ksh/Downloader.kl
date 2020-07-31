@@ -1,4 +1,4 @@
-package site.kason.ksh;
+
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -9,29 +9,29 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.function.Consumer;
 
-public class Downloader {
+class {
 
-    public static class Progress {
+    static class Progress {
         private long totalSize;
         private long downloadedSize;
         private long speed;
-        public Progress(long totalSize, long downloadedSize,long speed) {
+        constructor(long totalSize, long downloadedSize,long speed) {
             this.totalSize = totalSize;
             this.downloadedSize = downloadedSize;
             this.speed = speed;
         }
-        public long getTotalSize() {
+        long getTotalSize() {
             return totalSize;
         }
-        public long getDownloadedSize() {
+        long getDownloadedSize() {
             return downloadedSize;
         }
-        public long getSpeed() {
+        long getSpeed() {
             return speed;
         }
     }
 
-    public void download(String url, File localFile,@Nullable Consumer<Progress> callback) throws IOException {
+    void download(String url, File localFile,Consumer<Progress>? callback){
         URL u = new URL(url);
         URLConnection conn = u.openConnection();
         long contentLen = conn.getContentLengthLong();
@@ -66,7 +66,7 @@ public class Downloader {
         }
     }
 
-    public void download(String url,File localFile) throws IOException {
+    void download(String url,File localFile){
         download(url,localFile,null);
     }
 

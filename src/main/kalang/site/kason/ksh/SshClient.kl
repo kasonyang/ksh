@@ -1,4 +1,4 @@
-package site.kason.ksh;
+
 
 import lombok.SneakyThrows;
 import net.schmizz.sshj.SSHClient;
@@ -36,87 +36,87 @@ import java.util.List;
 /**
  * @author KasonYang
  */
-public class SshClient implements Closeable {
+class implements Closeable {
 
     protected final SSHClient sc = new SSHClient();
 
-    private final List<LocalPortForwardResult> localPfrList = new LinkedList<>();
+    private final List<LocalPortForwardResult> localPfrList = new LinkedList();
 
-    private final List<RemotePortForwardResult> remotePfrList = new LinkedList<>();
+    private final List<RemotePortForwardResult> remotePfrList = new LinkedList();
 
-    public SshClient() {
+    constructor() {
         sc.setRemoteCharset(StandardCharsets.UTF_8);
     }
 
-    public void connect(String hostname, int port) throws IOException {
+    void connect(String hostname, int port){
         sc.connect(hostname, port);
     }
 
-    public void connect(SshClient proxy, String hostname, int port) throws IOException {
+    void connect(SshClient proxy, String hostname, int port){
         DirectConnection dc = proxy.sc.newDirectConnection(hostname, port);
         sc.connectVia(dc);
     }
 
-    public void addHostKeyVerifier(String fingerprint) {
+    void addHostKeyVerifier(String fingerprint) {
         sc.addHostKeyVerifier(fingerprint);
     }
 
-    public void disableHostKeyVerify() {
+    void disableHostKeyVerify() {
         sc.addHostKeyVerifier(new PromiscuousVerifier());
     }
 
-    public void addConsoleHostKeyVerifier(File khFile) throws IOException {
+    void addConsoleHostKeyVerifier(File khFile){
         sc.addHostKeyVerifier(new ConsoleKnownHostsVerifier(khFile, System.console()));
     }
 
-    public void addConsoleHostKeyVerifier() throws IOException {
+    void addConsoleHostKeyVerifier(){
         File khFile = new File(OpenSSHKnownHosts.detectSSHDir(), "known_hosts");
         addConsoleHostKeyVerifier(khFile);
     }
 
-    public void authPassword(String username, String password) throws UserAuthException, TransportException {
+    void authPassword(String username, String password){
         sc.authPassword(username, password);
     }
 
-    public void authPublicKey(String username, String... locations) throws UserAuthException, TransportException {
+    void authPublicKey(String username, String... locations){
         sc.authPublickey(username, locations);
     }
 
-    public void authPublicKey(String username) throws UserAuthException, TransportException {
+    void authPublicKey(String username){
         sc.authPublickey(username);
     }
 
-    public boolean isConnected() {
+    boolean isConnected() {
         return sc.isConnected();
     }
 
-    public String getRemoteCharset() {
+    String getRemoteCharset() {
         return sc.getRemoteCharset().name();
     }
 
-    public void setRemoteCharset(String charset) {
+    void setRemoteCharset(String charset) {
         sc.setRemoteCharset(Charset.forName(charset));
     }
 
-    public void loadKnownHosts(File location) throws IOException {
+    void loadKnownHosts(File location){
         sc.loadKnownHosts(location);
     }
 
-    public void disconnect() throws IOException {
-        for (LocalPortForwardResult lpfr : localPfrList) {
+    void disconnect(){
+        for (lpfr in localPfrList) {
             lpfr.close();
         }
-        for (RemotePortForwardResult rpfr : remotePfrList) {
+        for (rpfr in remotePfrList) {
             rpfr.close();
         }
         sc.disconnect();
     }
 
-    public void close() throws IOException {
+    override void close(){
         disconnect();
     }
 
-    public void join() throws TransportException {
+    void join(){
         sc.getTransport().join();
     }
 
@@ -124,34 +124,30 @@ public class SshClient implements Closeable {
      * set the keep-alive interval
      * @param interval the interval(seconds)
      */
-    public void setKeepAliveInterval(int interval) {
+    void setKeepAliveInterval(int interval) {
         sc.getConnection().getKeepAlive().setKeepAliveInterval(interval);
     }
 
-    public CommandResult exec(String command) throws ConnectionException, TransportException {
+    CommandResult exec(String command){
         try (Session sess = sc.startSession()) {
-            Session.Command cmd = sess.exec(command);
+            val cmd = sess.exec(command);
             cmd.join();
             return new CommandResult(cmd, getRemoteCharset());
         }
     }
 
-    public LocalPortForwardResult forwardLocalPort(String localHost, int localPort, String remoteHostName, int remotePort) throws IOException {
+    LocalPortForwardResult forwardLocalPort(String localHost, int localPort, String remoteHostName, int remotePort){
         Parameters params = new Parameters(localHost, localPort, remoteHostName, remotePort);
         ServerSocket ss = new ServerSocket();
         ss.setReuseAddress(true);
         ss.bind(new InetSocketAddress(params.getLocalHost(), params.getLocalPort()));
         LocalPortForwarder forwarder = sc.newLocalPortForwarder(params, ss);
-        Thread forwardThread = new Thread(new Runnable() {
-            @Override
-            @SneakyThrows
-            public void run() {
-                try {
-                    forwarder.listen();
-                } finally {
-                    forwarder.close();
-                    ss.close();
-                }
+        Thread forwardThread = new Thread(() => {
+            try {
+                forwarder.listen();
+            } finally {
+                forwarder.close();
+                ss.close();
             }
         });
         forwardThread.start();
@@ -160,17 +156,17 @@ public class SshClient implements Closeable {
         return pfr;
     }
 
-    public RemotePortForwardResult forwardRemotePort(int remotePort, String host, int port) throws ConnectionException, TransportException {
+    RemotePortForwardResult forwardRemotePort(int remotePort, String host, int port){
         RemotePortForwarder forwarder = sc.getRemotePortForwarder();
         SocketForwardingConnectListener sfcl = new SocketForwardingConnectListener(new InetSocketAddress(host, port));
-        RemotePortForwarder.Forward forward = new RemotePortForwarder.Forward(remotePort);
+        val forward = new RemotePortForwarder$Forward(remotePort);
         forwarder.bind(forward, sfcl);
         RemotePortForwardResult pfr = new RemotePortForwardResult(forwarder, forward);
         remotePfrList.add(pfr);
         return pfr;
     }
 
-    public void uploadFile(String destPath, String[] localFile,@Nullable FileTransferListener listener) throws IOException {
+    void uploadFile(String destPath, String[] localFile,FileTransferListener? listener){
         File[] files = new File[localFile.length];
         for (int i = 0; i < files.length; i++) {
             files[i] = new File(localFile[i]);
@@ -178,26 +174,26 @@ public class SshClient implements Closeable {
         uploadFile(destPath, files, listener);
     }
 
-    public void uploadFile(String destPath, String... localFile) throws IOException {
+    void uploadFile(String destPath, String... localFile){
         uploadFile(destPath, localFile, null);
     }
 
-    public void uploadFile(String destPath, File[] localFile,@Nullable FileTransferListener listener) throws IOException {
+    void uploadFile(String destPath, File[] localFile,FileTransferListener? listener){
         try (SFTPClient sftp = sc.newSFTPClient()) {
             if (listener != null) {
                 sftp.getFileTransfer().setTransferListener(new DefaultTransferListener("", listener));
             }
-            for (File lf : localFile) {
+            for (lf in localFile) {
                 sftp.put(new FileSystemFile(lf), destPath);
             }
         }
     }
 
-    public void uploadFile(String destPath, File... localFile) throws IOException {
+    void uploadFile(String destPath, File... localFile){
         uploadFile(destPath, localFile, null);
     }
 
-    public void uploadBytes(String destPath, byte[] content, int permissions) throws IOException {
+    void uploadBytes(String destPath, byte[] content, int permissions){
         String name = FilenameUtils.getName(destPath);
         BytesLocalFile source = new BytesLocalFile(name, content, permissions);
         try (SFTPClient sftp = sc.newSFTPClient()){
@@ -205,90 +201,90 @@ public class SshClient implements Closeable {
         }
     }
 
-    public void uploadBytes(String destPath, byte[] content) throws IOException {
+    void uploadBytes(String destPath, byte[] content){
         uploadBytes(destPath, content, 0644);
     }
 
-    public void downloadFile(File localFile, String[] remoteFiles, @Nullable FileTransferListener listener) throws IOException {
+    void downloadFile(File localFile, String[] remoteFiles, FileTransferListener? listener){
         try (SFTPClient sftp = sc.newSFTPClient()) {
             if (listener != null) {
                 sftp.getFileTransfer().setTransferListener(new DefaultTransferListener("", listener));
             }
-            for (String rf : remoteFiles) {
+            for (rf in remoteFiles) {
                 sftp.get(rf, new FileSystemFile(localFile));
             }
         }
     }
 
-    public void downloadFile(File localFile, String... remoteFiles) throws IOException {
+    void downloadFile(File localFile, String... remoteFiles){
         downloadFile(localFile, remoteFiles, null);
     }
 
-    public void downloadFile(String localFile, String[] remoteFiles, @Nullable FileTransferListener listener) throws IOException {
+    void downloadFile(String localFile, String[] remoteFiles, FileTransferListener? listener){
         downloadFile(new File(localFile), remoteFiles, listener);
     }
 
-    public void downloadFile(String localFile, String... remoteFiles) throws IOException {
+    void downloadFile(String localFile, String... remoteFiles){
         downloadFile(localFile, remoteFiles, null);
     }
 
-    public static class CommandResult {
-        private Session.Command cmd;
+    static class CommandResult {
+        private Session$Command cmd;
         private String charset;
-        private CommandResult(Session.Command cmd, String charset) {
+        protected constructor(Session$Command cmd, String charset) {
             this.cmd = cmd;
             this.charset = charset;
         }
 
-        public int getExitStatus() {
+        int getExitStatus() {
             return cmd.getExitStatus();
         }
 
-        public String getOutput() throws IOException {
+        String getOutput(){
             return getOutput(charset);
         }
 
-        public String getError() throws IOException {
+        String getError(){
             return getError(charset);
         }
 
-        public String getOutput(String charset) throws IOException {
+        String getOutput(String charset){
             return IOUtils.readFully(cmd.getInputStream()).toString(charset);
         }
 
-        public String getError(String charset) throws IOException {
+        String getError(String charset){
             return IOUtils.readFully(cmd.getErrorStream()).toString(charset);
         }
     }
 
-    public static class LocalPortForwardResult {
+    static class LocalPortForwardResult {
 
         private Thread thread;
 
-        public LocalPortForwardResult(Thread thread) {
+        constructor(Thread thread) {
             this.thread = thread;
         }
 
-        public void close() {
+        void close() {
             thread.interrupt();
         }
 
-        public void join() throws InterruptedException {
+        void join(){
             thread.join();
         }
 
     }
 
-    public static class RemotePortForwardResult {
+    static class RemotePortForwardResult {
         private RemotePortForwarder forwarder;
-        private RemotePortForwarder.Forward forward;
+        private RemotePortForwarder$Forward forward;
 
-        public RemotePortForwardResult(RemotePortForwarder forwarder, RemotePortForwarder.Forward forward) {
+        constructor(RemotePortForwarder forwarder, RemotePortForwarder$Forward forward) {
             this.forwarder = forwarder;
             this.forward = forward;
         }
 
-        public void close() throws ConnectionException, TransportException {
+        void close(){
             forwarder.cancel(forward);
         }
     }
@@ -301,65 +297,55 @@ public class SshClient implements Closeable {
 
         private int permissions;
 
-        public BytesLocalFile(String name, byte[] content, int permissions) {
+        constructor(String name, byte[] content, int permissions) {
             this.name = name;
             this.content = content;
             this.permissions = permissions;
         }
 
-        @Override
-        public String getName() {
+        override String getName() {
             return name;
         }
 
-        @Override
-        public long getLength() {
+        override long getLength() {
             return content.length;
         }
 
-        @Override
-        public InputStream getInputStream() throws IOException {
+        override InputStream getInputStream(){
             return new ByteArrayInputStream(content);
         }
 
-        @Override
-        public int getPermissions() throws IOException {
+        override int getPermissions(){
             return permissions;
         }
 
-        @Override
-        public boolean isFile() {
+        override boolean isFile() {
             return true;
         }
 
-        @Override
-        public boolean isDirectory() {
+        override boolean isDirectory() {
             return false;
         }
 
-        @Override
-        public Iterable<? extends LocalSourceFile> getChildren(LocalFileFilter filter) throws IOException {
+        override Iterable<? extends LocalSourceFile> getChildren(LocalFileFilter filter){
             return Collections.emptyList();
         }
 
-        @Override
-        public boolean providesAtimeMtime() {
+        override boolean providesAtimeMtime() {
             return false;
         }
 
-        @Override
-        public long getLastAccessTime() throws IOException {
+        override long getLastAccessTime(){
             return 0;
         }
 
-        @Override
-        public long getLastModifiedTime() throws IOException {
+        override long getLastModifiedTime(){
             return 0;
         }
 
     }
 
-    public interface FileTransferListener {
+    interface FileTransferListener {
 
         void transferredSizeChange(String file, long size);
 
@@ -371,20 +357,19 @@ public class SshClient implements Closeable {
 
         private FileTransferListener fileTransferListener;
 
-        private DefaultTransferListener(String relativePath, FileTransferListener fileTransferListener) {
+        protected constructor(String relativePath, FileTransferListener fileTransferListener) {
             this.relativePath = relativePath;
             this.fileTransferListener = fileTransferListener;
         }
 
-        @Override
-        public TransferListener directory(String name) {
+        override TransferListener directory(String name) {
             return new DefaultTransferListener(relativePath + name + "/", fileTransferListener);
         }
 
-        @Override
-        public StreamCopier.Listener file(String name, long size) {
-            final String path = relativePath + name;
-            return transferred -> fileTransferListener.transferredSizeChange(path, size);
+        override StreamCopier$Listener file(String name, long size) {
+            val path = relativePath + name;
+            val listener as StreamCopier$Listener = transferred => fileTransferListener.transferredSizeChange(path, size);
+            return listener;
         }
     }
 
