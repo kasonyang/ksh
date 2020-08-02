@@ -135,9 +135,9 @@ class {
     }
 
     static class CaptureResult {
-        private final int exitValue;
-        private final String output;
-        private final String error;
+        final int exitValue;
+        final String output;
+        final String error;
 
         constructor(int exitValue, String output, String error) {
             this.exitValue = exitValue;
