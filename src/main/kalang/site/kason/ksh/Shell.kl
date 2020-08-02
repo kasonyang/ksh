@@ -1,14 +1,5 @@
-
-
-
 import org.apache.commons.exec.CommandLine;
 import site.kason.ksh.util.StreamUtil;
-
-import javax.annotation.Nullable;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.Charset;
 
 class {
@@ -28,40 +19,24 @@ class {
         return cd(new File(workingDirectory));
     }
 
-    int exec(String[] arguments){
-        return exec(arguments, "", "", "");
-    }
-
-    int exec(String command){
-        return exec(parseCommandLine(command));
-    }
-
     int exec(
-            String[] arguments, String? input, String? output, String? errOutput
+            String[] arguments, String? input = "", String? output = "", String? errOutput = ""
     ){
-        Proc p = start(arguments, input, output, errOutput);
+        val p = start(arguments, input, output, errOutput);
         p.waitFor();
         return p.exitValue();
     }
 
     int exec(
-            String command, String? input, String? output, String? errOutput
+            String command, String? input = "", String? output = "", String? errOutput = ""
     ){
         return exec(parseCommandLine(command), input, output, errOutput);
     }
 
-    Proc start(String[] command){
-        return start(command, null, null, null);
-    }
-
-    Proc start(String command){
-        return start(parseCommandLine(command));
-    }
-
     Proc start(
-            String[] arguments, String? input, String? output, String? errOutput
+            String[] arguments, String? input = null, String? output = null, String? errOutput = null
     ){
-        ProcessBuilder pb = new ProcessBuilder(arguments);
+        val pb = new ProcessBuilder(arguments);
         if (input != null) {
             if (input.isEmpty()) {
                 pb.redirectInput(ProcessBuilder$Redirect.INHERIT);
@@ -88,41 +63,30 @@ class {
     }
 
     Proc start(
-            String command, String? input, String? output, String? errOutput
+            String command, String? input = null, String? output = null, String? errOutput = null
     ){
         return start(parseCommandLine(command), input, output, errOutput);
     }
 
-    CaptureResult capture(String[] arguments, String charset){
+    CaptureResult capture(String[] arguments, String? charset = null){
+        charset = charset ?? Charset.defaultCharset().name();
         if (arguments == null || arguments.length == 0) {
             throw new IllegalArgumentException("empty array");
         }
-        Process p = Runtime.getRuntime().exec(arguments, null, workingDirectory);
+        val p = Runtime.getRuntime().exec(arguments, null, workingDirectory);
         p.waitFor();
-        try (InputStream is = p.getInputStream(); InputStream es = p.getErrorStream()) {
+        try (val is = p.getInputStream(); val es = p.getErrorStream()) {
             String output = StreamUtil.readToString(is, charset);
             String error = StreamUtil.readToString(es, charset);
             return new CaptureResult(p.exitValue(), output, error);
         }
     }
 
-    CaptureResult capture(String command, String charset){
+    CaptureResult capture(String command, String? charset = null){
         return capture(parseCommandLine(command), charset);
     }
 
-    CaptureResult capture(String[] arguments){
-        return capture(arguments, Charset.defaultCharset().name());
-    }
-
-    CaptureResult capture(String command){
-        return capture(parseCommandLine(command));
-    }
-
-    String captureExec(String[] arguments){
-        return captureExec(arguments, 0);
-    }
-
-    String captureExec(String[] arguments, int expectingExitValue){
+    String captureExec(String[] arguments, int expectingExitValue = 0){
         if (arguments == null || arguments.length == 0) {
             throw new IllegalArgumentException("empty array");
         }
