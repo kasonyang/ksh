@@ -3,12 +3,12 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath "site.kason.kalang:kalang-compiler:1.9.1"
+        classpath "site.kason.kalang:kalang-compiler:${kalangVersion}"
     }
 }
 
 dependencies {
-    compile "site.kason.kalang:kalang-runtime:1.9.1"
+    compile "site.kason.kalang:kalang-runtime:${kalangVersion}"
 }
 
 sourceSets.main.allJava.srcDir("src/main/kalang");
