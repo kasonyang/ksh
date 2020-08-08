@@ -1,0 +1,55 @@
+import org.apache.commons.cli.ParseException;
+import org.junit.Assert;
+import org.junit.Test;
+import site.kason.ksh.ShellOptions;
+
+class {
+
+    @Test
+    void test() {
+        val options = createShellOptions("--help", "-p", "test","hello");
+        val help = options.getUsage();
+        println(help);
+        Assert.assertEquals('''
+                usage: ShellOptionTest [options] name [nickname]
+                ShellOption Test
+                  -h,--help         print help message
+                  -p,--path <arg>   specify path
+                Good luck!'''.trim().replace(" ","").replace("\r","").replace("\n","")
+           ,help.trim().replace("\r","").replace(" ", "").replace("\r","").replace("\n","")
+        );
+        Assert.assertTrue(options.hasOption("h"));
+        Assert.assertTrue(options.hasOption("help"));
+        Assert.assertTrue(options.hasOption("p"));
+        Assert.assertEquals("test",options.getOption("path"));
+        Assert.assertTrue(options.hasArg(0));
+        Assert.assertFalse(options.hasArg(1));
+        Assert.assertEquals("hello",options.getArg(0));
+    }
+
+    @Test
+    void testInvaidOption() {
+        val options = createShellOptions("--hello");
+        Assert.assertTrue(options.hasError());
+        Assert.assertEquals("Unrecognized option: --hello", options.getError());
+    }
+
+    @Test
+    void testInvalidArgs() {
+        val options = createShellOptions(new String[0]);
+        Assert.assertTrue(options.hasError());
+        Assert.assertEquals("invalid args", options.getError());
+    }
+
+    private ShellOptions createShellOptions(String... args) {
+        return ShellOptions.newBuilder("ShellOptionTest")
+            .header("ShellOption Test")
+            .footer("Good luck!")
+            .option("h","help",false,"print help message")
+            .option("p","path",true,"specify path")
+            .args(["name"],["nickname"])
+            .build(args)
+        ;
+    }
+
+}
