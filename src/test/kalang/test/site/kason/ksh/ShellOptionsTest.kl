@@ -11,7 +11,7 @@ class {
         val help = options.getUsage();
         println(help);
         Assert.assertEquals('''
-                usage: ShellOptionTest [options] name [nickname]
+                usage: ShellOptionTest [options] name area [nickname gender]
                 ShellOption Test
                   -h,--help         print help message
                   -p,--path <arg>   specify path
@@ -47,7 +47,7 @@ class {
             .footer("Good luck!")
             .option("h","help",false,"print help message")
             .option("p","path",true,"specify path")
-            .args(["name"],["nickname"])
+            .args(["name", "area"],["nickname","gender"])
             .build(args)
         ;
     }

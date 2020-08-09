@@ -6,7 +6,7 @@ kalang script helpers
     
 ### Gradle
     
-    compile 'site.kason:ksh:2.0.0'
+    compile 'site.kason:ksh:2.1.0'
     
 # Usages
 

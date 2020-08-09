@@ -1,5 +1,4 @@
 import org.apache.commons.exec.CommandLine;
-import site.kason.ksh.util.StreamUtil;
 import java.nio.charset.Charset;
 
 class {
@@ -76,8 +75,8 @@ class {
         val p = Runtime.getRuntime().exec(arguments, null, workingDirectory);
         p.waitFor();
         try (val is = p.getInputStream(); val es = p.getErrorStream()) {
-            String output = StreamUtil.readToString(is, charset);
-            String error = StreamUtil.readToString(es, charset);
+            val output = is..readToString(charset);
+            val error = es..readToString(charset);
             return new CaptureResult(p.exitValue(), output, error);
         }
     }
@@ -90,27 +89,22 @@ class {
         if (arguments == null || arguments.length == 0) {
             throw new IllegalArgumentException("empty array");
         }
-        String command = arguments[0];
-        Process p = Runtime.getRuntime().exec(arguments, null, workingDirectory);
+        val command = arguments[0];
+        val p = Runtime.getRuntime().exec(arguments, null, workingDirectory);
         try {
             p.waitFor();
         } catch (InterruptedException ex) {
             throw ex;
         }
-        int returnValue = p.exitValue();
+        val returnValue = p.exitValue();
         if (returnValue != expectingExitValue) {
-            String err = String.format("%s exit with a unexpected value %d , expected %d", command, returnValue, expectingExitValue);
+            val err = String.format("%s exit with a unexpected value %d , expected %d", command, returnValue, expectingExitValue);
             throw new IOException(err);
         }
         p.getOutputStream().close();
-        InputStream is = p.getInputStream();
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        byte[] buffer = new byte[4096];
-        int rlen;
-        while ((rlen = is.read(buffer)) > 0) {
-            bos.write(buffer, 0, rlen);
-        }
-        return bos.toString();//TODO using default encoding?
+        val is = p.getInputStream();
+        //TODO using default encoding?
+        return is..readToString(Charset.defaultCharset().name());
     }
 
     private String[] parseCommandLine(String commandLine) {
