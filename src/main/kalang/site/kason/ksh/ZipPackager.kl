@@ -1,0 +1,71 @@
+import java.util.zip.ZipOutputStream;
+import java.util.zip.ZipEntry;
+
+class implements AutoCloseable {
+
+    private final ZipOutputStream zos;
+
+    constructor(File outFile) {
+        this(new FileOutputStream(outFile));
+    }
+
+    constructor(OutputStream os) {
+        this.zos = new ZipOutputStream(os);
+    }
+
+    void newFile(String path, File source) {
+        try (val is = new FileInputStream(source)) {
+            _putFile(path, is);
+        }
+    }
+
+    void newFile(File source) {
+        newFile(source.getName(), source);
+    }
+
+    void newFile(String path, InputStream data) {
+        _putFile(path, data);
+    }
+
+    void newFile(String path, byte[] data) {
+        _putFile(path, new ByteArrayInputStream(data));
+    }
+
+    void newDirectory(String dir) {
+        _putDirectory(dir);
+    }
+
+    void newFileTree(String destDirPath, File[] fileOrDirs) {
+        if (!destDirPath.isEmpty() && !destDirPath.endsWith("/")) {
+            destDirPath = destDirPath + "/";
+        }
+        for (f in fileOrDirs) {
+            if (f.isFile()) {
+                newFile(destDirPath + f.getName(), f);
+            } else {
+                val dirPath = destDirPath + f.getName() + "/";
+                newDirectory(dirPath);
+                newFileTree(dirPath, f.listFiles());
+            }
+        }
+    }
+
+    private void _putDirectory(String path) {
+        if (!path.endsWith("/")) {
+            path = path + "/";
+        }
+        zos.putNextEntry(new ZipEntry(path));
+        zos.closeEntry();
+    }
+
+    private void _putFile(String path,  InputStream is) {
+        zos.putNextEntry(new ZipEntry(path));
+        zos..writeFrom(is);
+        zos.closeEntry();
+    }
+
+    override void close() {
+        zos.close();
+    }
+
+}

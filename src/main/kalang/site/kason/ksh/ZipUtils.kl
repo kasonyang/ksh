@@ -1,0 +1,18 @@
+class {
+
+    static void zip(File out, File[] files) {
+        try(val zp = new ZipPackager(out)) {
+            zp.newFileTree("", files);
+        }
+    }
+
+    static File[] extract(File zipFile,File destDir){
+        return extract(zipFile,destDir,false);
+    }
+
+    static File[] extract(File zipFile,File destDir,boolean allowAutoMkDir) {
+        val zipExtractor = new ZipExtractor();
+        return zipExtractor.extract(zipFile, destDir, allowAutoMkDir);
+    }
+
+}

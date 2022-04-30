@@ -1,6 +1,7 @@
 import org.junit.Assert;
 import org.junit.Test;
 import site.kason.ksh.FS;
+import site.kason.ksh.ZipUtils;
 
 class {
 
@@ -10,5 +11,10 @@ class {
         Assert.assertTrue(FS.wildcardMatch("hello.kls","he??o.kls"));
         Assert.assertFalse(FS.wildcardMatch("test.kls","*.java"));
     }
+
+//    @Test
+//    void testZip() {
+//        ZipUtils.zip(new File("myzip.zip"), new File("gradle").listFiles());
+//    }
 
 }
