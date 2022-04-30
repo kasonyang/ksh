@@ -1,0 +1,36 @@
+import org.apache.commons.cli.ParseException;
+import org.junit.Assert;
+import org.junit.Test;
+import site.kason.ksh.CmdLine;
+
+class {
+
+    @Test
+    public void test() throws ParseException {
+        val cmdLine = CmdLine.define(
+            "CliOptionTest",
+            [
+                "@help",
+                "-p --path $ specify path",
+                "#MSG NAME?"
+            ]
+        );
+        val help = cmdLine.format();
+        Assert.assertEquals("usage: CliOptionTest [options] MSG [NAME]\n"
+                // + "CliOption Test\n" +
+                + " -h,--help         show this help message\n"
+                + " -p,--path <arg>   specify path\n"
+                // + "Good luck!\n"
+                , help.replace("\r\n","\n")
+        );
+        val result = cmdLine.parse(["--help", "-p", "test","hello"]);
+        Assert.assertTrue(result.hasOption("h"));
+        Assert.assertTrue(result.hasOption("help"));
+        Assert.assertTrue(result.hasOption("p"));
+        Assert.assertEquals("test",result.getOptionValue("path"));
+        Assert.assertTrue(result.hasArgument(0));
+        Assert.assertFalse(result.hasArgument(1));
+        Assert.assertEquals("hello",result.getArgument(0));
+    }
+
+}
