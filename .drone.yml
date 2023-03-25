@@ -1,0 +1,14 @@
+kind: pipeline
+type: docker
+name: default
+
+steps:
+  - name: build
+    image: ks-gradle:local
+    commands:
+      - gradle --no-daemon build uploadArchives
+
+  - name: local-release
+    image: ks-local-maven-dist:local
+    commands:
+      - dist build/maven/*
