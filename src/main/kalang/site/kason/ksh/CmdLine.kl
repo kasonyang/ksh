@@ -129,7 +129,6 @@ class {
             }
             val hasArg = option.startsWith("$ ");
             val desc = hasArg ? option.substring(2) : option;
-            println("${shortArg} ${longArg} ${hasArg} ${desc}");
             cmdLineDef.add(shortArg, longArg, hasArg, desc);
         } else {
             throw new IllegalArgumentException("invalid option:${option}");
@@ -151,7 +150,7 @@ class {
         String appName;
         String? header;
         String? footer;
-        String[] argNames;
+        String[] argNames = new String[0];
         int requiredArgCount;
         String helpOptionName = "";
 
