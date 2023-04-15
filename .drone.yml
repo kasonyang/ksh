@@ -12,3 +12,11 @@ steps:
     image: ks-local-maven-dist:local
     commands:
       - dist build/maven/*
+
+  - name: publish-release
+    image: ks-gradle:local
+    commands:
+      - gradle -Drelease=true uploadArchives
+    when:
+      ref:
+        - refs/tags/*
